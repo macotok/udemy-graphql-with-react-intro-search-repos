@@ -4,7 +4,7 @@ import client from './client';
 import { ADD_STAR, REMOVE_STAR, SEARCH_REPOSITORIES } from './graphql';
 
 const StarButton = props => {
-  const node = props.node;
+  const { node, query, first, last, before, after } = props;
   const totalCount = node.stargazers.totalCount;
   const viewerHasStarred = node.viewerHasStarred;
   const starCount = totalCount === 1 ? `1 star` : `${totalCount} stars`;
@@ -22,7 +22,17 @@ const StarButton = props => {
     )
   };
   return (
-    <Mutation mutation={viewerHasStarred ? REMOVE_STAR : ADD_STAR}>
+    <Mutation
+      mutation={viewerHasStarred ? REMOVE_STAR : ADD_STAR}
+      refetchQueries={
+        [
+          {
+            query: SEARCH_REPOSITORIES,
+            variables: { query, first, last, before, after }
+          }
+        ]
+      }
+    >
       {
         addOrRemoveStar => <StarStatus addOrRemoveStar={addOrRemoveStar} />
       }
@@ -103,7 +113,10 @@ const App = () => {
                         <li key={node.id}>
                           <a href={node.url} target="_blank" rel="noopener noreferrer">{node.name}</a>
                           &nbsp;
-                          <StarButton node={node} />
+                          <StarButton
+                            node={node}
+                            {...{query, first, last, before, after}}
+                          />
                         </li>
                       )
                     })
